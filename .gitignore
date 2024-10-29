@@ -1,0 +1,13 @@
+annotations
+
+_pycache_
+
+videoImages
+videos 
+models
+dataset
+annotations.zip
+env
+*.webm
+*.mkv
+

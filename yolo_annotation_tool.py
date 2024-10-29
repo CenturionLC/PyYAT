@@ -45,7 +45,7 @@ def show_image(frame):
 
 def list_of_labels():
 	if all_labels == []:
-		with open(label_file, mode ='r')as file:
+		with open(label_file, mode ='r') as file:
 			# reading the CSV file
 			csvFile = csv.reader(file)
 			# displaying the contents of the CSV file
@@ -100,19 +100,29 @@ def convert_boxes_to_yolo(yolo_boxes, frame):
 	return (yolo_label)
 
 def save_annotation(frame, labels):
-	output_dir = output_folder
-	cv2.imwrite(output_dir+str(annotation_index)+".jpg", frame)
-	file=open(output_dir+str(annotation_index)+".txt",'w')
-	for items in labels:
-	    file.writelines(items+'\n')
-	file.close()
+    global annotation_index  # Ensure annotation_index is accessible globally
+    output_dir = output_folder
 
-	print("Annotations saved as: ", labels)
 
-	parser.set('Settings', 'annotation_index', str(annotation_index))
-	fp=open('config.ini','w')
-	parser.write(fp)
-	fp.close()
+    # Save the frame image
+    cv2.imwrite(f"{output_dir}images/{annotation_index}.jpg", frame)
+	
+
+    # Write annotations to a new .txt file
+    with open(f"{output_dir}labels/{annotation_index}.txt", 'w') as file:
+        for item in labels:
+            file.writelines(item + '\n')
+
+    print("Annotations saved as:", labels)
+
+    # Increment the annotation index for the next annotation
+    annotation_index += 1
+
+    # Update the configuration file with the new annotation index
+    parser.set('Settings', 'annotation_index', str(annotation_index))
+    with open('config.ini', 'w') as fp:
+        parser.write(fp)
+
 
 
 is_clicked = 0
@@ -123,7 +133,7 @@ stop_point = []
 temp_point = []
 mouse_point = [0,0]
 
-current_label = 'person'
+current_label = 'sports ball'
 def get_mouse_click(event, x, y, flags, param):
 	global is_clicked, last_click
 	global start_point, stop_point, temp_point, mouse_point
@@ -226,12 +236,13 @@ def draw_boxes(frame, yolo_boxes, frame_orig):
 
 		elif ch == ord('x'):
 			print("Skip Frame")
-			if annotation_index > 0:
+			if annotation_index >= 0:
 				annotation_index = annotation_index+1
 			break
 
 		elif ch == ord('l'):
 			all_labels = list_of_labels()
+			print("Labels: ", all_labels)
 			current_label = all_labels[int(get_label())-1]
 			print("Label: ", current_label)
 
@@ -260,7 +271,7 @@ for im in range(len(list_of_images)):
 	# resize image
 	frame = cv2.resize(frame, dsize)
 
-	yolo_boxes = pre_annotate(frame,['person', 'car', 'cat', 'dog', 'cow', 'traffic light'])#list_of_labels())
+	yolo_boxes = []
 
 	# show_image(frame)
 	draw_boxes(frame, yolo_boxes, frame_orig)
